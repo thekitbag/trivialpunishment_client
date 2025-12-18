@@ -47,7 +47,6 @@ export function SocketProvider({ children }) {
     () => ({
       socket: socketRef.current,
       connected,
-      socketUrl: getSocketUrl(),
     }),
     [connected],
   )

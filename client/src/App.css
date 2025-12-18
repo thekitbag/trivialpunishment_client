@@ -64,9 +64,46 @@
   cursor: pointer;
 }
 
+.button.secondary {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.button.secondary:hover {
+  border-color: rgba(99, 102, 241, 0.9);
+}
+
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.splitActions {
+  display: grid;
+  gap: 12px;
+}
+
+.codeBlock {
+  margin: 10px 0 16px;
+  padding: 16px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.codeLabel {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.codeValue {
+  margin-top: 6px;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-weight: 900;
 }
 
 .statusRow {
