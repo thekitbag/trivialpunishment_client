@@ -2,6 +2,7 @@ import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import HostLobby from './views/HostLobby.jsx'
 import LandingPage from './views/LandingPage.jsx'
+import Leaderboard from './views/Leaderboard.jsx'
 import PlayerJoin from './views/PlayerJoin.jsx'
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/host" element={<HostLobby />} />
       <Route path="/join" element={<PlayerJoin />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -2,72 +2,50 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSocket } from '../SocketContext.jsx'
 
 export default function PlayerJoin() {
-  const { socket, connected, socketUrl } = useSocket()
+  const { socket, connected } = useSocket()
   const [gameCode, setGameCode] = useState('')
   const [username, setUsername] = useState('')
   const [joined, setJoined] = useState(false)
-  const [error, setError] = useState(null)
+  const [gameStarted, setGameStarted] = useState(false)
+
+  useEffect(() => {
+    function onGameStarted() {
+      setGameStarted(true)
+    }
+
+    socket.on('game_started', onGameStarted)
+    return () => socket.off('game_started', onGameStarted)
+  }, [socket])
 
   const canJoin = useMemo(() => {
     const code = gameCode.trim()
     return code.length === 4 && username.trim().length > 0
   }, [gameCode, username])
 
-  useEffect(() => {
-    function onError(msg) {
-        setError(msg)
-        setJoined(false)
-        // If we were trying to auto-reconnect and failed, clear storage
-        if (sessionStorage.getItem('playerGameCode')) {
-             sessionStorage.removeItem('playerGameCode')
-             sessionStorage.removeItem('playerUsername')
-        }
-    }
-
-    socket.on('error', onError)
-    return () => socket.off('error', onError)
-  }, [socket])
-
-  // Auto-join if session exists
-  useEffect(() => {
-    if (connected && !joined) {
-        const storedCode = sessionStorage.getItem('playerGameCode')
-        const storedName = sessionStorage.getItem('playerUsername')
-        if (storedCode && storedName) {
-            setGameCode(storedCode)
-            setUsername(storedName)
-            setJoined(true)
-            socket.emit('join_game', { username: storedName, gameCode: storedCode })
-        }
-    }
-  }, [connected, joined, socket])
-
   function onSubmit(event) {
     event.preventDefault()
-    const trimmedName = username.trim()
-    const trimmedCode = gameCode.trim().toUpperCase()
-    
-    if (!trimmedName || trimmedCode.length !== 4) return
+    const trimmed = username.trim()
+    if (!trimmed) return
 
-    setError(null)
+    const code = gameCode.trim().toUpperCase()
+    if (code.length !== 4) return
+
+    socket.emit('join_game', { username: trimmed, gameCode: code })
     setJoined(true)
-    
-    // Save session
-    sessionStorage.setItem('playerGameCode', trimmedCode)
-    sessionStorage.setItem('playerUsername', trimmedName)
-
-    socket.emit('join_game', { username: trimmedName, gameCode: trimmedCode })
   }
 
-  if (joined && !error) {
+  if (joined) {
     return (
       <div className="page">
         <div className="card">
-          <h1 className="title">Waiting…</h1>
-          <p className="subtitle">Joined Room <strong>{gameCode.toUpperCase()}</strong></p>
-          <p className="subtitle">Hang tight while the host starts the game.</p>
+          <h1 className="title">{gameStarted ? 'Game Starting!' : 'Waiting…'}</h1>
+          {gameStarted ? (
+            <p className="subtitle">Get Ready! The game is about to begin.</p>
+          ) : (
+            <p className="subtitle">Waiting for host in Room {gameCode.trim().toUpperCase()}…</p>
+          )}
           <div className="statusRow">
-            <span>You: {username.trim()}</span>
+            <span>You joined as: {username.trim()}</span>
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
           </div>
         </div>
@@ -78,40 +56,35 @@ export default function PlayerJoin() {
   return (
     <div className="page">
       <div className="card">
-        <h1 className="title">Join Game</h1>
-        
-        {error ? <div className="errorBanner" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div> : null}
+        <h1 className="title">Questionable Puns</h1>
+        <p className="subtitle">Enter the 4-letter room code and your name.</p>
 
         <form className="field" onSubmit={onSubmit}>
-          <label className="label">GAME CODE</label>
           <input
             className="input"
             value={gameCode}
             onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-            placeholder="ABCD"
+            placeholder="Game code (4 letters)"
+            autoComplete="off"
             maxLength={4}
-            autoCorrect="off"
-            autoCapitalize="characters"
+            inputMode="text"
           />
-
-          <label className="label">YOUR NAME</label>
           <input
             className="input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Your Name"
+            placeholder="Your name"
             autoComplete="nickname"
             maxLength={24}
           />
-          
           <button className="button" type="submit" disabled={!canJoin}>
-            JOIN ROOM
+            JOIN
           </button>
         </form>
 
         <div className="statusRow">
           <span>{connected ? 'Connected' : 'Connecting…'}</span>
-          <span style={{ fontSize: '0.7em' }}>{socketUrl}</span>
+          <span>Route: /join</span>
         </div>
       </div>
     </div>

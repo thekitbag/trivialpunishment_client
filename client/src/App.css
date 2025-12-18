@@ -132,3 +132,29 @@
   font-size: 22px;
   letter-spacing: -0.01em;
 }
+
+.configGrid {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+
+.configRow {
+  display: grid;
+  gap: 6px;
+}
+
+.configLabel {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.banner {
+  margin-top: 10px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(99, 102, 241, 0.25));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-weight: 800;
+  text-align: center;
+}
