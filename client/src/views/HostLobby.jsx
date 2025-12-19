@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../SocketContext.jsx'
+import { useAuth } from '../AuthContext.jsx'
 
 function normalizePlayers(payload) {
   if (!payload) return []
@@ -25,6 +26,7 @@ function clampInt(value, min, max) {
 
 export default function HostLobby() {
   const { socket, connected } = useSocket()
+  const { isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
   const [players, setPlayers] = useState([])
   const [gameCode, setGameCode] = useState(null)
@@ -35,6 +37,12 @@ export default function HostLobby() {
   const [roundsPerPlayer, setRoundsPerPlayer] = useState(2)
   const [questionsPerRound, setQuestionsPerRound] = useState(5)
   const [isConfigured, setIsConfigured] = useState(false)
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login')
+    }
+  }, [loading, isAuthenticated, navigate])
 
   useEffect(() => {
     const stored = sessionStorage.getItem('gameCode')
@@ -108,7 +116,6 @@ export default function HostLobby() {
   }, [navigate, socket, connected])
 
   function onCreateGame() {
-    console.log('[HostLobby] Create Game Clicked! Connected:', connected, 'Socket ID:', socket.id)
     const maxPlayers = clampInt(targetPlayerCount, 2, 8)
     const rounds = clampInt(roundsPerPlayer, 1, 5)
     const questions = clampInt(questionsPerRound, 3, 10)
@@ -138,6 +145,20 @@ export default function HostLobby() {
   )
 
   const isReadyToStart = isConfigured && names.length === targetPlayerCount
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1 className="title">Loading...</h1>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   if (!isConfigured) {
     return (

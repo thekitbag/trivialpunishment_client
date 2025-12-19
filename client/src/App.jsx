@@ -4,11 +4,15 @@ import HostLobby from './views/HostLobby.jsx'
 import LandingPage from './views/LandingPage.jsx'
 import Leaderboard from './views/Leaderboard.jsx'
 import PlayerJoin from './views/PlayerJoin.jsx'
+import Login from './views/Login.jsx'
+import Signup from './views/Signup.jsx'
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/host" element={<HostLobby />} />
       <Route path="/join" element={<PlayerJoin />} />
       <Route path="/leaderboard" element={<Leaderboard />} />

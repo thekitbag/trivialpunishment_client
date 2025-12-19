@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../SocketContext.jsx'
+import { useAuth } from '../AuthContext.jsx'
 
 export default function PlayerJoin() {
+  const navigate = useNavigate()
   const { socket, connected } = useSocket()
+  const { user, isAuthenticated, loading } = useAuth()
   const [gameCode, setGameCode] = useState('')
-  const [username, setUsername] = useState('')
   const [joined, setJoined] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login')
+    }
+  }, [loading, isAuthenticated, navigate])
 
   useEffect(() => {
     function onGameStarted() {
@@ -19,19 +28,33 @@ export default function PlayerJoin() {
 
   const canJoin = useMemo(() => {
     const code = gameCode.trim()
-    return code.length === 4 && username.trim().length > 0
-  }, [gameCode, username])
+    return code.length === 4 && isAuthenticated
+  }, [gameCode, isAuthenticated])
 
   function onSubmit(event) {
     event.preventDefault()
-    const trimmed = username.trim()
-    if (!trimmed) return
+
+    if (!isAuthenticated || !user) return
 
     const code = gameCode.trim().toUpperCase()
     if (code.length !== 4) return
 
-    socket.emit('join_game', { username: trimmed, gameCode: code })
+    socket.emit('join_game', { username: user.username, gameCode: code })
     setJoined(true)
+  }
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1 className="title">Loading...</h1>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
+    return null
   }
 
   if (joined) {
@@ -45,7 +68,7 @@ export default function PlayerJoin() {
             <p className="subtitle">Waiting for host in Room {gameCode.trim().toUpperCase()}…</p>
           )}
           <div className="statusRow">
-            <span>You joined as: {username.trim()}</span>
+            <span>You joined as: {user.username}</span>
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
           </div>
         </div>
@@ -57,7 +80,9 @@ export default function PlayerJoin() {
     <div className="page">
       <div className="card">
         <h1 className="title">Questionable Puns</h1>
-        <p className="subtitle">Enter the 4-letter room code and your name.</p>
+        <p className="subtitle">
+          Enter the 4-letter room code. Joining as {user.username}
+        </p>
 
         <form className="field" onSubmit={onSubmit}>
           <input
@@ -68,14 +93,6 @@ export default function PlayerJoin() {
             autoComplete="off"
             maxLength={4}
             inputMode="text"
-          />
-          <input
-            className="input"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Your name"
-            autoComplete="nickname"
-            maxLength={24}
           />
           <button className="button" type="submit" disabled={!canJoin}>
             JOIN
