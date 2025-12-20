@@ -34,7 +34,13 @@ export default function Signup() {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || window.location.origin
-      const response = await fetch(`${apiUrl}/api/auth/signup`, {
+      const signupUrl = `${apiUrl}/api/auth/signup`
+      console.log('[Signup] Attempting signup to:', signupUrl)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+      const response = await fetch(signupUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,9 +49,13 @@ export default function Signup() {
           username: username.trim(),
           password,
         }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       const data = await response.json()
+      console.log('[Signup] Response:', response.status, data)
 
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed')
@@ -54,7 +64,14 @@ export default function Signup() {
       login(data.token, { id: data.userId, username: username.trim() })
       navigate('/')
     } catch (err) {
-      setError(err.message || 'An error occurred during signup')
+      console.error('[Signup] Error:', err)
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Is the server running?')
+      } else if (err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check if the backend is running.')
+      } else {
+        setError(err.message || 'An error occurred during signup')
+      }
     } finally {
       setLoading(false)
     }

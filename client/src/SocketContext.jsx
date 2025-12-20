@@ -10,8 +10,6 @@ function getSocketUrl() {
 }
 
 // Global Singleton Socket - will be configured with auth in the Provider
-let socket = null
-
 function createSocket() {
   const token = localStorage.getItem('token')
   return io(getSocketUrl(), {
@@ -23,13 +21,13 @@ function createSocket() {
   })
 }
 
+// Initialize socket immediately
+let socket = createSocket()
+
 export function SocketProvider({ children }) {
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
-    if (!socket) {
-      socket = createSocket()
-    }
 
     const onConnect = () => {
       setConnected(true)

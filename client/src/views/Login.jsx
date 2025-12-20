@@ -23,7 +23,13 @@ export default function Login() {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || window.location.origin
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      const loginUrl = `${apiUrl}/api/auth/login`
+      console.log('[Login] Attempting login to:', loginUrl)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,9 +38,13 @@ export default function Login() {
           username: username.trim(),
           password,
         }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       const data = await response.json()
+      console.log('[Login] Response:', response.status, data)
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed')
@@ -43,7 +53,14 @@ export default function Login() {
       login(data.token, { id: data.userId, username: username.trim() })
       navigate('/')
     } catch (err) {
-      setError(err.message || 'An error occurred during login')
+      console.error('[Login] Error:', err)
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Is the server running?')
+      } else if (err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check if the backend is running.')
+      } else {
+        setError(err.message || 'An error occurred during login')
+      }
     } finally {
       setLoading(false)
     }

@@ -92,7 +92,7 @@ export default function HostLobby() {
     }
 
     function onGameStarted(payload) {
-      navigate('/leaderboard', { state: { players: normalizePlayers(payload) } })
+      navigate('/game')
     }
 
     socket.on('update_player_list', onUpdate)

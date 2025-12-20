@@ -7,9 +7,12 @@ export default function PlayerJoin() {
   const navigate = useNavigate()
   const { socket, connected } = useSocket()
   const { user, isAuthenticated, loading } = useAuth()
-  const [gameCode, setGameCode] = useState('')
-  const [joined, setJoined] = useState(false)
-  const [gameStarted, setGameStarted] = useState(false)
+  const [gameCode, setGameCode] = useState(() => {
+    return sessionStorage.getItem('current_game_code') || ''
+  })
+  const [joined, setJoined] = useState(() => {
+    return !!sessionStorage.getItem('current_game_code')
+  })
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -18,13 +21,35 @@ export default function PlayerJoin() {
   }, [loading, isAuthenticated, navigate])
 
   useEffect(() => {
+    // Auto-emit join if we restored state from storage
+    if (joined && gameCode && isAuthenticated && user && connected) {
+      console.log('[PlayerJoin] Auto-rejoining lobby:', gameCode)
+      socket.emit('join_game', { username: user.username, gameCode })
+    }
+  }, [joined, gameCode, isAuthenticated, user, connected, socket])
+
+  useEffect(() => {
     function onGameStarted() {
-      setGameStarted(true)
+      navigate('/play', { state: { gameCode } })
+    }
+
+    function onError(message) {
+      console.error('[PlayerJoin] Socket error:', message)
+      if (message === 'Game not found' || message === 'Room Full' || message === 'Game already started') {
+        sessionStorage.removeItem('current_game_code')
+        setJoined(false)
+        setGameCode('')
+        alert(message)
+      }
     }
 
     socket.on('game_started', onGameStarted)
-    return () => socket.off('game_started', onGameStarted)
-  }, [socket])
+    socket.on('error', onError)
+    return () => {
+      socket.off('game_started', onGameStarted)
+      socket.off('error', onError)
+    }
+  }, [socket, navigate, gameCode])
 
   const canJoin = useMemo(() => {
     const code = gameCode.trim()
@@ -39,7 +64,7 @@ export default function PlayerJoin() {
     const code = gameCode.trim().toUpperCase()
     if (code.length !== 4) return
 
-    socket.emit('join_game', { username: user.username, gameCode: code })
+    sessionStorage.setItem('current_game_code', code)
     setJoined(true)
   }
 
@@ -61,12 +86,8 @@ export default function PlayerJoin() {
     return (
       <div className="page">
         <div className="card">
-          <h1 className="title">{gameStarted ? 'Game Starting!' : 'Waiting…'}</h1>
-          {gameStarted ? (
-            <p className="subtitle">Get Ready! The game is about to begin.</p>
-          ) : (
-            <p className="subtitle">Waiting for host in Room {gameCode.trim().toUpperCase()}…</p>
-          )}
+          <h1 className="title">Waiting…</h1>
+          <p className="subtitle">Waiting for host in Room {gameCode.trim().toUpperCase()}…</p>
           <div className="statusRow">
             <span>You joined as: {user.username}</span>
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
