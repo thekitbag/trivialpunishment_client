@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSocket } from '../SocketContext.jsx'
 
 function normalizePlayers(payload) {
@@ -25,6 +25,7 @@ function getDisplayScore(player) {
 export default function Leaderboard() {
   const { socket, connected } = useSocket()
   const location = useLocation()
+  const navigate = useNavigate()
   
   const isGameOver = !!location.state?.finalScores
   const initialPlayers = isGameOver 
@@ -82,16 +83,31 @@ export default function Leaderboard() {
         ) : (
           <ul className="hostList" style={{ marginTop: '2rem' }}>
             {rows.map((row, index) => (
-              <li 
-                key={row.name} 
+              <li
+                key={row.name}
                 className="hostListItem"
-                style={isGameOver && index === 0 ? { backgroundColor: '#ffaa00', color: '#000', transform: 'scale(1.05)', fontWeight: 'bold' } : {}}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  ...(isGameOver && index === 0 ? { backgroundColor: '#ffaa00', color: '#000', transform: 'scale(1.05)', fontWeight: 'bold' } : {})
+                }}
               >
                 <span>{index + 1}. {row.name}</span>
                 {row.score != null ? <span>{row.score}</span> : ''}
               </li>
             ))}
           </ul>
+        )}
+
+        {isGameOver && (
+          <button
+            className="button"
+            style={{ marginTop: '2rem' }}
+            onClick={() => navigate('/')}
+          >
+            Back to Home
+          </button>
         )}
 
         <div className="statusRow">

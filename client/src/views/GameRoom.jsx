@@ -82,6 +82,9 @@ export default function GameRoom() {
     function onTopicWaiting(payload) {
       console.log('[GameRoom] Topic waiting:', payload)
       setTopicPickerName(payload.pickerUsername || 'a player')
+      if (payload.round !== undefined) {
+        setRoundNumber(payload.round)
+      }
       setPhase('topic_selection')
     }
 
@@ -97,6 +100,9 @@ export default function GameRoom() {
       if (payload.scores) {
         const scores = Array.isArray(payload.scores) ? payload.scores : []
         setLeaderboard(scores.sort((a, b) => b.score - a.score))
+      }
+      if (payload.round !== undefined) {
+        setRoundNumber(payload.round)
       }
       setPhase('round_over')
     }
