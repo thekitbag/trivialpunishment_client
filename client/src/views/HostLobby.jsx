@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import { useSocket } from '../SocketContext.jsx'
 import { useAuth } from '../AuthContext.jsx'
 
 function normalizePlayers(payload) {
+// ... existing normalizePlayers code ...
   if (!payload) return []
   if (Array.isArray(payload)) return payload
   if (Array.isArray(payload.players)) return payload.players
@@ -11,6 +13,7 @@ function normalizePlayers(payload) {
 }
 
 function normalizeGameCode(payload) {
+// ... existing normalizeGameCode code ...
   if (!payload) return null
   if (typeof payload === 'string') return payload
   if (typeof payload.gameCode === 'string') return payload.gameCode
@@ -19,6 +22,7 @@ function normalizeGameCode(payload) {
 }
 
 function clampInt(value, min, max) {
+// ... existing clampInt code ...
   const parsed = Number.parseInt(String(value), 10)
   if (Number.isNaN(parsed)) return min
   return Math.max(min, Math.min(max, parsed))
@@ -37,15 +41,19 @@ export default function HostLobby() {
   const [roundsPerPlayer, setRoundsPerPlayer] = useState(2)
   const [questionsPerRound, setQuestionsPerRound] = useState(5)
   const [isConfigured, setIsConfigured] = useState(false)
+  
+  const joinUrl = window.location.origin
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+// ... existing useEffect code ...
       navigate('/login')
     }
   }, [loading, isAuthenticated, navigate])
 
   useEffect(() => {
     const stored = sessionStorage.getItem('gameCode')
+// ... existing useEffect logic ...
     if (stored) {
       setPreviousCode(stored)
     }
@@ -238,10 +246,22 @@ export default function HostLobby() {
     <div className="page">
       <div className="card">
         <h1 className="title">Host Lobby</h1>
-        <div className="codeBlock" aria-label="Join code">
-          <div className="codeLabel">JOIN CODE</div>
-          <div className="codeValue">{gameCode}</div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+          <div className="codeBlock" aria-label="Join code" style={{ marginBottom: '1rem' }}>
+            <div className="codeLabel">JOIN CODE</div>
+            <div className="codeValue">{gameCode}</div>
+          </div>
+          
+          <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+            <QRCodeSVG value={joinUrl} size={150} />
+          </div>
+          
+          <div style={{ fontSize: '1.2rem', color: '#00aaff', fontWeight: 'bold' }}>
+            Join at: {joinUrl}
+          </div>
         </div>
+
         <p className="subtitle">
           {targetPlayerCount} Players • {roundsPerPlayer} Rounds each • {questionsPerRound} Questions
         </p>
