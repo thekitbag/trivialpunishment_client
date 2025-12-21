@@ -15,6 +15,8 @@ export default function GameRoom() {
   const [phase, setPhase] = useState('waiting')
   const [roundNumber, setRoundNumber] = useState(1)
   const [countdown, setCountdown] = useState(null)
+  const [topicPickerName, setTopicPickerName] = useState('')
+  const [currentTopic, setCurrentTopic] = useState('')
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -74,6 +76,27 @@ export default function GameRoom() {
       setCorrectAnswerIndex(null)
     }
 
+    function onTopicWaiting(payload) {
+      console.log('[GameRoom] Topic waiting:', payload)
+      setTopicPickerName(payload.pickerUsername || 'a player')
+      setPhase('topic_selection')
+    }
+
+    function onTopicChosen(payload) {
+      console.log('[GameRoom] Topic chosen:', payload)
+      setCurrentTopic(payload.topic || '')
+      setPhase('topic_chosen')
+    }
+
+    function onRoundOver(payload) {
+      console.log('[GameRoom] Round over:', payload)
+      if (payload.scores) {
+        const scores = Array.isArray(payload.scores) ? payload.scores : []
+        setLeaderboard(scores.sort((a, b) => b.score - a.score))
+      }
+      setPhase('round_over')
+    }
+
     function onGameOver(payload) {
       console.log('[GameRoom] Game over:', payload)
       navigate('/leaderboard', { state: { finalScores: payload.scores } })
@@ -84,6 +107,9 @@ export default function GameRoom() {
     socket.on('round_reveal', onRoundReveal)
     socket.on('update_leaderboard', onUpdateLeaderboard)
     socket.on('round_start', onRoundStart)
+    socket.on('topic_waiting', onTopicWaiting)
+    socket.on('topic_chosen', onTopicChosen)
+    socket.on('round_over', onRoundOver)
     socket.on('game_over', onGameOver)
 
     return () => {
@@ -92,6 +118,9 @@ export default function GameRoom() {
       socket.off('round_reveal', onRoundReveal)
       socket.off('update_leaderboard', onUpdateLeaderboard)
       socket.off('round_start', onRoundStart)
+      socket.off('topic_waiting', onTopicWaiting)
+      socket.off('topic_chosen', onTopicChosen)
+      socket.off('round_over', onRoundOver)
       socket.off('game_over', onGameOver)
     }
   }, [socket, navigate])
@@ -132,6 +161,61 @@ export default function GameRoom() {
             <>
               <h1 className="title">Round {roundNumber} Starting...</h1>
               <p className="subtitle">Get ready for the next question!</p>
+            </>
+          )}
+
+          {phase === 'topic_selection' && (
+            <>
+              <h1 className="title">Topic Selection</h1>
+              <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+                Waiting for <strong>{topicPickerName}</strong> to pick a topic...
+              </p>
+            </>
+          )}
+
+          {phase === 'topic_chosen' && (
+            <>
+              <h1 className="title">Topic Selected!</h1>
+              <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+                The topic is: <strong>{currentTopic}</strong>
+              </p>
+            </>
+          )}
+
+          {phase === 'round_over' && (
+            <>
+              <h1 className="title">Round {roundNumber} Complete!</h1>
+              <p className="subtitle">Round over! Check the leaderboard.</p>
+              <div style={{ marginTop: '2rem' }}>
+                <h3 className="title" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
+                  Current Standings
+                </h3>
+                {leaderboard.length === 0 ? (
+                  <p className="subtitle">No scores yet</p>
+                ) : (
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {leaderboard.map((player, index) => (
+                      <li
+                        key={player.username || index}
+                        style={{
+                          padding: '1rem',
+                          marginBottom: '0.5rem',
+                          backgroundColor: index === 0 ? '#ffaa00' : '#2a2a2a',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          fontSize: '1.2rem',
+                        }}
+                      >
+                        <span>
+                          {index + 1}. {player.username}
+                        </span>
+                        <strong>{player.score}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </>
           )}
 

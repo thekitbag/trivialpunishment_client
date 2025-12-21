@@ -20,6 +20,10 @@ export default function PlayerGame() {
   const [wasCorrect, setWasCorrect] = useState(null)
   const [currentScore, setCurrentScore] = useState(0)
   const [countdown, setCountdown] = useState(null)
+  const [isTopicPicker, setIsTopicPicker] = useState(false)
+  const [topicPickerName, setTopicPickerName] = useState('')
+  const [topicInput, setTopicInput] = useState('')
+  const [chosenTopic, setChosenTopic] = useState('')
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -73,6 +77,30 @@ export default function PlayerGame() {
       setWasCorrect(null)
     }
 
+    function onTopicRequest(payload) {
+      console.log('[PlayerGame] Topic request:', payload)
+      setIsTopicPicker(true)
+      setState('topic_input')
+    }
+
+    function onTopicWaiting(payload) {
+      console.log('[PlayerGame] Topic waiting:', payload)
+      // If I am the picker, ignore this event because I should have received 'topic_request'
+      if (user && payload.pickerUsername === user.username) {
+        console.log('[PlayerGame] Ignoring topic_waiting because I am the picker')
+        return
+      }
+      setIsTopicPicker(false)
+      setTopicPickerName(payload.pickerUsername || 'another player')
+      setState('topic_waiting')
+    }
+
+    function onTopicChosen(payload) {
+      console.log('[PlayerGame] Topic chosen:', payload)
+      setChosenTopic(payload.topic || '')
+      setState('topic_chosen')
+    }
+
     function onGameOver(payload) {
       console.log('[PlayerGame] Game over:', payload)
       navigate('/leaderboard', { state: { finalScores: payload.scores } })
@@ -90,6 +118,9 @@ export default function PlayerGame() {
     socket.on('question_start', onQuestionStart)
     socket.on('round_reveal', onRoundReveal)
     socket.on('round_start', onRoundStart)
+    socket.on('topic_request', onTopicRequest)
+    socket.on('topic_waiting', onTopicWaiting)
+    socket.on('topic_chosen', onTopicChosen)
     socket.on('game_over', onGameOver)
     socket.on('error', onError)
 
@@ -97,6 +128,9 @@ export default function PlayerGame() {
       socket.off('question_start', onQuestionStart)
       socket.off('round_reveal', onRoundReveal)
       socket.off('round_start', onRoundStart)
+      socket.off('topic_request', onTopicRequest)
+      socket.off('topic_waiting', onTopicWaiting)
+      socket.off('topic_chosen', onTopicChosen)
       socket.off('game_over', onGameOver)
       socket.off('error', onError)
     }
@@ -116,6 +150,17 @@ export default function PlayerGame() {
     setState('answered')
     console.log('[PlayerGame] Submitting answer:', { answerIndex: index, gameCode })
     socket.emit('submit_answer', { answerIndex: index, gameCode })
+  }
+
+  function handleTopicSubmit(event) {
+    event.preventDefault()
+    const topic = topicInput.trim()
+    if (!topic) return
+
+    console.log('[PlayerGame] Submitting topic:', { topic, gameCode })
+    socket.emit('submit_topic', { topic, gameCode })
+    setTopicInput('')
+    setState('waiting')
   }
 
   if (loading) {
@@ -139,6 +184,48 @@ export default function PlayerGame() {
           <>
             <h1 className="title">Look at the Host Screen</h1>
             <p className="subtitle">Waiting for the next question...</p>
+          </>
+        )}
+
+        {state === 'topic_input' && (
+          <>
+            <h1 className="title">Pick a Topic!</h1>
+            <p className="subtitle" style={{ marginBottom: '2rem' }}>
+              Enter a topic for the next round of questions
+            </p>
+            <form className="field" onSubmit={handleTopicSubmit}>
+              <input
+                className="input"
+                type="text"
+                value={topicInput}
+                onChange={(e) => setTopicInput(e.target.value)}
+                placeholder="Enter a topic (e.g., Movies, Sports, Science)"
+                autoFocus
+                maxLength={50}
+              />
+              <button className="button" type="submit" disabled={!topicInput.trim()}>
+                Submit Topic
+              </button>
+            </form>
+          </>
+        )}
+
+        {state === 'topic_waiting' && (
+          <>
+            <h1 className="title">Topic Selection</h1>
+            <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+              Waiting for <strong>{topicPickerName}</strong> to pick a topic...
+            </p>
+          </>
+        )}
+
+        {state === 'topic_chosen' && (
+          <>
+            <h1 className="title" style={{ color: '#00aaff' }}>Topic Selected!</h1>
+            <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+              <strong>{chosenTopic}</strong>
+            </p>
+            <p className="subtitle" style={{ marginTop: '1rem' }}>Get ready for questions!</p>
           </>
         )}
 
