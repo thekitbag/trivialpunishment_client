@@ -101,6 +101,16 @@ export default function HostLobby() {
     function onHostReconnected(payload) {
       const code = normalizeGameCode(payload)
       if (!code) return
+
+      if (payload.gameState === 'GAME_OVER') {
+        // Game is finished, do not reconnect
+        console.log('[HostLobby] Previous game is over, clearing session')
+        sessionStorage.removeItem('gameCode')
+        setPreviousCode(null)
+        setGameCode(null)
+        setIsConfigured(false)
+        return
+      }
       
       setGameCode(code)
       setTargetPlayerCount(payload.maxPlayers)
