@@ -24,6 +24,7 @@ export default function PlayerGame() {
   const [topicPickerName, setTopicPickerName] = useState('')
   const [topicInput, setTopicInput] = useState('')
   const [chosenTopic, setChosenTopic] = useState('')
+  const [roundPicker, setRoundPicker] = useState('')
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -53,6 +54,8 @@ export default function PlayerGame() {
       setWasCorrect(null)
       setState('question')
       setCountdown(payload.timeLimit) // Note: Server needs to send this or we default
+      if (payload.topic) setChosenTopic(payload.topic)
+      if (payload.pickerUsername) setRoundPicker(payload.pickerUsername)
     }
 
     function onRoundReveal(payload) {
@@ -98,6 +101,7 @@ export default function PlayerGame() {
     function onTopicChosen(payload) {
       console.log('[PlayerGame] Topic chosen:', payload)
       setChosenTopic(payload.topic || '')
+      setRoundPicker(payload.pickerUsername || '')
       setState('topic_chosen')
     }
 
@@ -180,6 +184,12 @@ export default function PlayerGame() {
   return (
     <div className="page">
       <div className="card">
+        {(state === 'question' || state === 'answered' || state === 'result') && chosenTopic && (
+           <div style={{ marginBottom: '1rem', textAlign: 'center', fontSize: '0.9rem', color: '#aaa' }}>
+             {chosenTopic} {roundPicker && `(${roundPicker})`}
+           </div>
+        )}
+
         {state === 'waiting' && (
           <>
             <h1 className="title">Look at the Host Screen</h1>

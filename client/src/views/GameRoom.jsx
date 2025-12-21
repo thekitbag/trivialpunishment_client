@@ -17,6 +17,7 @@ export default function GameRoom() {
   const [countdown, setCountdown] = useState(null)
   const [topicPickerName, setTopicPickerName] = useState('')
   const [currentTopic, setCurrentTopic] = useState('')
+  const [roundPicker, setRoundPicker] = useState('')
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -40,6 +41,8 @@ export default function GameRoom() {
       setPlayersAnswered(new Set())
       setPhase('question')
       setCountdown(payload.timeLimit || 30)
+      if (payload.topic) setCurrentTopic(payload.topic)
+      if (payload.pickerUsername) setRoundPicker(payload.pickerUsername)
     }
 
     function onPlayerAnswered(payload) {
@@ -85,6 +88,7 @@ export default function GameRoom() {
     function onTopicChosen(payload) {
       console.log('[GameRoom] Topic chosen:', payload)
       setCurrentTopic(payload.topic || '')
+      setRoundPicker(payload.pickerUsername || '')
       setPhase('topic_chosen')
     }
 
@@ -150,6 +154,14 @@ export default function GameRoom() {
     <div className="page" style={{ maxWidth: '1200px' }}>
       <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
         <div className="card" style={{ flex: '3' }}>
+          {(phase === 'question' || phase === 'reveal') && currentTopic && (
+            <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#333', borderRadius: '4px', textAlign: 'center' }}>
+              <span style={{ color: '#aaa' }}>Current Round: </span>
+              <strong style={{ color: '#fff', fontSize: '1.2rem' }}>{currentTopic}</strong>
+              {roundPicker && <span style={{ color: '#aaa', marginLeft: '0.5rem' }}>(chosen by {roundPicker})</span>}
+            </div>
+          )}
+
           {phase === 'waiting' && (
             <>
               <h1 className="title">Waiting for game to start...</h1>

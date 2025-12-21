@@ -25,16 +25,24 @@ function getDisplayScore(player) {
 export default function Leaderboard() {
   const { socket, connected } = useSocket()
   const location = useLocation()
-  const [players, setPlayers] = useState(() => normalizePlayers(location.state?.players))
+  
+  const isGameOver = !!location.state?.finalScores
+  const initialPlayers = isGameOver 
+    ? normalizePlayers(location.state.finalScores) 
+    : normalizePlayers(location.state?.players)
+
+  const [players, setPlayers] = useState(initialPlayers)
 
   useEffect(() => {
     function onUpdate(payload) {
-      setPlayers(normalizePlayers(payload))
+      if (!isGameOver) {
+        setPlayers(normalizePlayers(payload))
+      }
     }
 
     socket.on('update_player_list', onUpdate)
     return () => socket.off('update_player_list', onUpdate)
-  }, [socket])
+  }, [socket, isGameOver])
 
   const rows = useMemo(() => {
     const list = players
@@ -48,20 +56,39 @@ export default function Leaderboard() {
     return list
   }, [players])
 
+  const winner = isGameOver && rows.length > 0 ? rows[0] : null
+
   return (
     <div className="page">
       <div className="card">
-        <h1 className="title">Leaderboard</h1>
-        <p className="subtitle">Game starting…</p>
+        {isGameOver ? (
+          <>
+            <h1 className="title" style={{ fontSize: '3rem', color: '#ffaa00' }}>Game Over!</h1>
+            {winner && (
+              <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '1rem', color: '#fff' }}>
+                Winner: <strong>{winner.name}</strong>
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <h1 className="title">Leaderboard</h1>
+            <p className="subtitle">Game starting…</p>
+          </>
+        )}
 
         {rows.length === 0 ? (
           <p className="subtitle">Waiting for scores…</p>
         ) : (
-          <ul className="hostList">
-            {rows.map((row) => (
-              <li key={row.name} className="hostListItem">
-                {row.name}
-                {row.score != null ? ` — ${row.score}` : ''}
+          <ul className="hostList" style={{ marginTop: '2rem' }}>
+            {rows.map((row, index) => (
+              <li 
+                key={row.name} 
+                className="hostListItem"
+                style={isGameOver && index === 0 ? { backgroundColor: '#ffaa00', color: '#000', transform: 'scale(1.05)', fontWeight: 'bold' } : {}}
+              >
+                <span>{index + 1}. {row.name}</span>
+                {row.score != null ? <span>{row.score}</span> : ''}
               </li>
             ))}
           </ul>
