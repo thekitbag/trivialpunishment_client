@@ -42,7 +42,30 @@ export default function HostLobby() {
   const [questionsPerRound, setQuestionsPerRound] = useState(5)
   const [isConfigured, setIsConfigured] = useState(false)
   
-  const joinUrl = window.location.origin
+  const [joinUrl, setJoinUrl] = useState(window.location.origin)
+  const [altUrl, setAltUrl] = useState(null)
+
+  useEffect(() => {
+    // Fetch network info to get the real LAN IP
+    fetch('/api/info')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ip) {
+          const port = window.location.port
+          const protocol = window.location.protocol
+          const newUrl = `${protocol}//${data.ip}:${port}`
+          setJoinUrl(newUrl)
+
+          // Try to construct a friendly local URL
+          if (data.hostname && !data.hostname.includes('localhost')) {
+             let host = data.hostname
+             if (!host.endsWith('.local')) host += '.local'
+             setAltUrl(`${protocol}//${host}:${port}`)
+          }
+        }
+      })
+      .catch(err => console.error('Failed to fetch network info:', err))
+  }, [])
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -257,8 +280,18 @@ export default function HostLobby() {
             <QRCodeSVG value={joinUrl} size={150} />
           </div>
           
-          <div style={{ fontSize: '1.2rem', color: '#00aaff', fontWeight: 'bold' }}>
-            Join at: {joinUrl}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '1.2rem', color: '#00aaff', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              Scan or go to:
+            </div>
+            <div style={{ fontSize: '1.5rem', color: '#fff', fontFamily: 'monospace', marginBottom: '0.5rem' }}>
+              {joinUrl}
+            </div>
+            {altUrl && (
+              <div style={{ fontSize: '1rem', color: '#aaa' }}>
+                Or try: {altUrl}
+              </div>
+            )}
           </div>
         </div>
 
