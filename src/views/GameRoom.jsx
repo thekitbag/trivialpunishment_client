@@ -17,6 +17,7 @@ export default function GameRoom() {
   const [countdown, setCountdown] = useState(null)
   const [topicPickerName, setTopicPickerName] = useState('')
   const [currentTopic, setCurrentTopic] = useState('')
+  const [roundTitle, setRoundTitle] = useState('')
   const [roundPicker, setRoundPicker] = useState('')
 
   useEffect(() => {
@@ -28,14 +29,11 @@ export default function GameRoom() {
   useEffect(() => {
     function onQuestionStart(payload) {
       console.log('[GameRoom] Question start:', payload)
-      console.log('[GameRoom] Question text:', payload.text)
-      console.log('[GameRoom] Setting phase to question')
       const question = {
         text: payload.text || 'No question text received',
         options: payload.options || [],
         timeLimit: payload.timeLimit || 30,
       }
-      console.log('[GameRoom] Current question object:', question)
       setCurrentQuestion(question)
       setCorrectAnswerIndex(null)
       setPlayersAnswered(new Set())
@@ -43,6 +41,9 @@ export default function GameRoom() {
       setCountdown(payload.timeLimit || 30)
       if (payload.topic) setCurrentTopic(payload.topic)
       if (payload.pickerUsername) setRoundPicker(payload.pickerUsername)
+      
+      // Set the punny title for the round
+      setRoundTitle(payload.punnyTitle || payload.topic || `Round ${payload.round || 1}`)
     }
 
     function onPlayerAnswered(payload) {
