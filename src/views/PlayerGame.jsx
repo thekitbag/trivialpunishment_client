@@ -136,6 +136,7 @@ export default function PlayerGame() {
 
     function onGameOver(payload) {
       console.log('[PlayerGame] Game over:', payload)
+      sessionStorage.removeItem('current_game_code')
       navigate('/leaderboard', { state: { finalScores: payload.scores } })
     }
 
