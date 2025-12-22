@@ -1,6 +1,6 @@
 # Trivial Punishment Client
 
-The frontend for **Trivial Punishment**, a local multiplayer party game inspired by "Jackbox" games. Built with React, Vite, and Socket.io.
+The frontend for **Trivial Punishment**, a local multiplayer party game. Built with React, Vite, and Socket.io.
 
 ## Overview
 
@@ -14,6 +14,7 @@ The frontend for **Trivial Punishment**, a local multiplayer party game inspired
   - Full-screen cinematic display (100vh).
   - Large typography and "Jackbox-style" animations.
   - Switches between Question View and Leaderboard View automatically.
+  - QR code generation for easy player joining.
 - **Player View (Mobile):**
   - Optimized for mobile touchscreens.
   - Answer buttons, topic selection, and score display.
@@ -63,21 +64,26 @@ trivialpunishment_client/
     The app will run at `http://localhost:5173` (default).
 
 3.  **Environment Variables:**
-    Create a `.env` file (optional, defaults to localhost):
+    Create a `.env` file (optional, see `.env.example`):
     ```env
     VITE_SOCKET_URL=http://localhost:3001
     VITE_API_URL=http://localhost:3001
     ```
 
+    **Note:** During development, Vite's proxy configuration (in `vite.config.js`) automatically forwards `/api` and `/socket.io` requests to `http://localhost:3001`. In production, these environment variables should point to your backend server's URL.
+
 ## Technology Stack
 
-- **Framework:** React 18
-- **Build Tool:** Vite
-- **Real-time:** Socket.io-client
-- **Routing:** React Router DOM
+- **Framework:** React 19
+- **Build Tool:** Vite 7
+- **Real-time:** Socket.io-client 4.8
+- **Routing:** React Router DOM 7
+- **QR Codes:** qrcode.react
 - **Styling:** CSS3 (Variables, Clamp for responsive text, Grid/Flexbox)
 
 ## Development
 
 - **Formatting:** ESLint is configured.
-- **Styles:** Global styles in `src/App.css`.
+- **Styles:** Global styles in `src/App.css` and `src/index.css`.
+- **Build:** Run `npm run build` to create a production build in the `dist/` directory.
+- **Preview:** Run `npm run preview` to preview the production build locally.
