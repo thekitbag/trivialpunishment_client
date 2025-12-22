@@ -37,9 +37,9 @@ export default function HostLobby() {
   const [creatingGame, setCreatingGame] = useState(false)
   const [previousCode, setPreviousCode] = useState(null)
 
-  const [targetPlayerCount, setTargetPlayerCount] = useState(3)
-  const [roundsPerPlayer, setRoundsPerPlayer] = useState(2)
-  const [questionsPerRound, setQuestionsPerRound] = useState(5)
+  const [targetPlayerCount, setTargetPlayerCount] = useState(2)
+  const [roundsPerPlayer, setRoundsPerPlayer] = useState(1)
+  const [questionsPerRound, setQuestionsPerRound] = useState(3)
   const [isConfigured, setIsConfigured] = useState(false)
   
   const [joinUrl, setJoinUrl] = useState(window.location.origin)
@@ -251,10 +251,11 @@ export default function HostLobby() {
             Create Game
           </button>
 
-          <div className="statusRow">
+          {/* Debug footer - commented out for production */}
+          {/* <div className="statusRow">
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
             <span>Route: /host</span>
-          </div>
+          </div> */}
         </div>
       </div>
     )
@@ -266,10 +267,11 @@ export default function HostLobby() {
         <div className="card">
           <h1 className="title">Host</h1>
           <p className="subtitle">Creating game…</p>
-          <div className="statusRow">
+          {/* Debug footer - commented out for production */}
+          {/* <div className="statusRow">
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
             <span>Route: /host</span>
-          </div>
+          </div> */}
         </div>
       </div>
     )
@@ -326,10 +328,11 @@ export default function HostLobby() {
           </ul>
         )}
 
-        <div className="statusRow">
+        {/* Debug footer - commented out for production */}
+        {/* <div className="statusRow">
           <span>{connected ? 'Connected' : 'Connecting…'}</span>
           <span>Route: /host</span>
-        </div>
+        </div> */}
       </div>
     </div>
   )

@@ -321,10 +321,11 @@ export default function PlayerGame() {
           </>
         )}
 
-        <div className="statusRow">
+        {/* Debug footer - commented out for production */}
+        {/* <div className="statusRow">
           <span>{connected ? 'Connected' : 'Connecting…'}</span>
           <span>Route: /play</span>
-        </div>
+        </div> */}
       </div>
     </div>
   )

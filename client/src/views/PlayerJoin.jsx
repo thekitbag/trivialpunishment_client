@@ -88,10 +88,11 @@ export default function PlayerJoin() {
         <div className="card">
           <h1 className="title">Waiting…</h1>
           <p className="subtitle">Waiting for host in Room {gameCode.trim().toUpperCase()}…</p>
-          <div className="statusRow">
+          {/* Debug footer - commented out for production */}
+          {/* <div className="statusRow">
             <span>You joined as: {user.username}</span>
             <span>{connected ? 'Connected' : 'Connecting…'}</span>
-          </div>
+          </div> */}
         </div>
       </div>
     )
@@ -120,10 +121,11 @@ export default function PlayerJoin() {
           </button>
         </form>
 
-        <div className="statusRow">
+        {/* Debug footer - commented out for production */}
+        {/* <div className="statusRow">
           <span>{connected ? 'Connected' : 'Connecting…'}</span>
           <span>Route: /join</span>
-        </div>
+        </div> */}
       </div>
     </div>
   )

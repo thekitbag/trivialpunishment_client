@@ -156,10 +156,68 @@ export default function GameRoom() {
     return null
   }
 
+  // Show leaderboard during intermission/reveal/round_over phases
+  const showLeaderboard = phase === 'reveal' || phase === 'round_over' || phase === 'intermission'
+
+  if (showLeaderboard) {
+    return (
+      <div className="gameView">
+        <div className="leaderboardCard">
+          <h1 className="leaderboardTitle">Leaderboard</h1>
+          {leaderboard.length === 0 ? (
+            <p className="questionText">No scores yet</p>
+          ) : (
+            <ul className="leaderboardList">
+              {leaderboard.map((player, index) => (
+                <li key={player.username || index} className="leaderboardItem">
+                  <span className="leaderboardRank">#{index + 1}</span>
+                  <span className="leaderboardName">{player.username}</span>
+                  <span className="leaderboardScore">{player.score}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (phase === 'question' && currentQuestion) {
+    return (
+      <div className="gameView">
+        <div className="questionCard">
+          {currentTopic && (
+            <div className="topicBadge">
+              <span className="topicLabel">Topic:</span>
+              <span className="topicName">{currentTopic}</span>
+              {roundPicker && <span className="topicPicker">(chosen by {roundPicker})</span>}
+            </div>
+          )}
+          <div className="questionHeader">
+            <h2 className="questionTitle">Question {roundNumber}</h2>
+            {countdown !== null && <div className="countdown">{countdown}s</div>}
+          </div>
+          <p className="questionText">{currentQuestion.text}</p>
+          <div className="optionsGrid">
+            {currentQuestion.options.map((option, index) => (
+              <div key={index} className="optionItem">
+                <span className="optionLetter">{String.fromCharCode(65 + index)}</span>
+                <span className="optionText">{option}</span>
+              </div>
+            ))}
+          </div>
+          <p className="playersAnsweredText">
+            Players answered: {playersAnswered.size} / {leaderboard.length}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="page" style={{ maxWidth: '1200px' }}>
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-        <div className="card" style={{ flex: '3' }}>
+    <div className="gameView">
+      <div className="leaderboardCard">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', alignItems: 'center' }}>
           {(phase === 'question' || phase === 'reveal') && currentTopic && (
             <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#333', borderRadius: '4px', textAlign: 'center' }}>
               <span style={{ color: '#aaa' }}>Current Round: </span>
@@ -170,22 +228,15 @@ export default function GameRoom() {
 
           {phase === 'waiting' && (
             <>
-              <h1 className="title">Waiting for game to start...</h1>
-              <p className="subtitle">The host will begin the game shortly.</p>
-            </>
-          )}
-
-          {phase === 'intermission' && (
-            <>
-              <h1 className="title">Round {roundNumber} Starting...</h1>
-              <p className="subtitle">Get ready for the next question!</p>
+              <h1 className="leaderboardTitle">Get Ready!</h1>
+              <p className="questionText">The game will begin shortly...</p>
             </>
           )}
 
           {phase === 'topic_selection' && (
             <>
-              <h1 className="title">Topic Selection</h1>
-              <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+              <h1 className="leaderboardTitle">Topic Selection</h1>
+              <p className="questionText">
                 Waiting for <strong>{topicPickerName}</strong> to pick a topic...
               </p>
             </>
@@ -193,139 +244,11 @@ export default function GameRoom() {
 
           {phase === 'topic_chosen' && (
             <>
-              <h1 className="title">Topic Selected!</h1>
-              <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
+              <h1 className="leaderboardTitle">Topic Selected!</h1>
+              <p className="questionText">
                 The topic is: <strong>{currentTopic}</strong>
               </p>
             </>
-          )}
-
-          {phase === 'round_over' && (
-            <>
-              <h1 className="title">Round {roundNumber} Complete!</h1>
-              <p className="subtitle">Round over! Check the leaderboard.</p>
-              <div style={{ marginTop: '2rem' }}>
-                <h3 className="title" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
-                  Current Standings
-                </h3>
-                {leaderboard.length === 0 ? (
-                  <p className="subtitle">No scores yet</p>
-                ) : (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {leaderboard.map((player, index) => (
-                      <li
-                        key={player.username || index}
-                        style={{
-                          padding: '1rem',
-                          marginBottom: '0.5rem',
-                          backgroundColor: index === 0 ? '#ffaa00' : '#2a2a2a',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          fontSize: '1.2rem',
-                        }}
-                      >
-                        <span>
-                          {index + 1}. {player.username}
-                        </span>
-                        <strong>{player.score}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </>
-          )}
-
-          {phase === 'question' && currentQuestion && (
-            <>
-              <div style={{ textAlign: 'right', marginBottom: '1rem', color: '#00aaff' }}>
-                Time: {countdown}s
-              </div>
-              <h2 className="title" style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>
-                {currentQuestion.text}
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                {currentQuestion.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="card"
-                    style={{
-                      padding: '1.5rem',
-                      backgroundColor: correctAnswerIndex === index ? '#00ff00' : '#2a2a2a',
-                      cursor: 'default',
-                    }}
-                  >
-                    <strong>{String.fromCharCode(65 + index)}.</strong> {option}
-                  </div>
-                ))}
-              </div>
-              <p className="subtitle" style={{ marginTop: '2rem' }}>
-                Players answered: {playersAnswered.size} / {leaderboard.length}
-              </p>
-            </>
-          )}
-
-          {phase === 'reveal' && currentQuestion && (
-            <>
-              <h2 className="title" style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>
-                {currentQuestion.text}
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                {currentQuestion.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className="card"
-                    style={{
-                      padding: '1.5rem',
-                      backgroundColor: correctAnswerIndex === index ? '#00aa00' : '#2a2a2a',
-                      border: correctAnswerIndex === index ? '3px solid #00ff00' : 'none',
-                    }}
-                  >
-                    <strong>{String.fromCharCode(65 + index)}.</strong> {option}
-                    {correctAnswerIndex === index && (
-                      <span style={{ marginLeft: '1rem', color: '#00ff00' }}>✓ Correct!</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          <div className="statusRow" style={{ marginTop: '2rem' }}>
-            <span>{connected ? 'Connected' : 'Connecting…'}</span>
-            <span>Phase: {phase}</span>
-            <span>Question: {currentQuestion ? 'Set' : 'Null'}</span>
-          </div>
-        </div>
-
-        <div className="card" style={{ flex: '1', minWidth: '250px' }}>
-          <h3 className="title" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
-            Leaderboard
-          </h3>
-          {leaderboard.length === 0 ? (
-            <p className="subtitle">No scores yet</p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {leaderboard.map((player, index) => (
-                <li
-                  key={player.username || index}
-                  style={{
-                    padding: '0.75rem',
-                    marginBottom: '0.5rem',
-                    backgroundColor: index === 0 ? '#ffaa00' : '#2a2a2a',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <span>
-                    {index + 1}. {player.username}
-                  </span>
-                  <strong>{player.score}</strong>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       </div>

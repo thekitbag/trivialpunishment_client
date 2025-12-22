@@ -110,10 +110,11 @@ export default function Leaderboard() {
           </button>
         )}
 
-        <div className="statusRow">
+        {/* Debug footer - commented out for production */}
+        {/* <div className="statusRow">
           <span>{connected ? 'Connected' : 'Connecting…'}</span>
           <span>Route: /leaderboard</span>
-        </div>
+        </div> */}
       </div>
     </div>
   )
