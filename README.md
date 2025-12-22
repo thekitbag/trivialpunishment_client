@@ -15,6 +15,11 @@ The frontend for **Trivial Punishment**, a local multiplayer party game. Built w
   - Large typography and "Jackbox-style" animations.
   - Switches between Question View and Leaderboard View automatically.
   - QR code generation for easy player joining.
+- **Game Configuration:**
+  - Configurable player count (2-8 players)
+  - Adjustable rounds per player (1-5 rounds)
+  - Questions per round (3-10 questions)
+  - Difficulty selection (Easy, Medium, Hard, Mixed)
 - **Player View (Mobile):**
   - Optimized for mobile touchscreens.
   - Answer buttons, topic selection, and score display.

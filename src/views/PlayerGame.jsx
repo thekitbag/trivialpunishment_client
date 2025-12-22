@@ -19,6 +19,8 @@ export default function PlayerGame() {
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [wasCorrect, setWasCorrect] = useState(null)
   const [currentScore, setCurrentScore] = useState(0)
+  const [roundPoints, setRoundPoints] = useState(0)
+  const [correctAnswerText, setCorrectAnswerText] = useState('')
   const [countdown, setCountdown] = useState(null)
   const [isTopicPicker, setIsTopicPicker] = useState(false)
   const [topicPickerName, setTopicPickerName] = useState('')
@@ -52,6 +54,8 @@ export default function PlayerGame() {
       setOptions(payload.options || [])
       setSelectedAnswer(null)
       setWasCorrect(null)
+      setRoundPoints(0)
+      setCorrectAnswerText('')
       setState('question')
       setCountdown(payload.timeLimit) // Note: Server needs to send this or we default
       if (payload.topic) setChosenTopic(payload.topic)
@@ -68,7 +72,18 @@ export default function PlayerGame() {
         const myScoreObj = payload.scores.find(p => p.username === user?.username)
         if (myScoreObj) {
           setCurrentScore(myScoreObj.score)
+          // Extract points earned this round from the top-level pointsEarned map
+          if (payload.pointsEarned && myScoreObj.id) {
+             setRoundPoints(payload.pointsEarned[myScoreObj.id] || 0)
+          } else {
+             setRoundPoints(0)
+          }
         }
+      }
+
+      // Store the correct answer text
+      if (payload.correctAnswerText) {
+        setCorrectAnswerText(payload.correctAnswerText)
       }
 
       setState('result')
@@ -78,6 +93,8 @@ export default function PlayerGame() {
       setState('waiting')
       setSelectedAnswer(null)
       setWasCorrect(null)
+      setRoundPoints(0)
+      setCorrectAnswerText('')
     }
 
     function onTopicRequest(payload) {
@@ -300,24 +317,80 @@ export default function PlayerGame() {
 
         {state === 'result' && (
           <>
-            <h1
-              className="title"
-              style={{
-                color: wasCorrect ? '#00ff00' : '#ff4444',
-                fontSize: '3rem',
-                marginBottom: '2rem',
-              }}
-            >
-              {wasCorrect ? 'Correct!' : 'Wrong!'}
-            </h1>
-            {selectedAnswer !== null && (
-              <p className="subtitle" style={{ fontSize: '1.2rem' }}>
-                You answered: <strong>{String.fromCharCode(65 + selectedAnswer)}</strong>
-              </p>
+            {wasCorrect ? (
+              <>
+                <h1
+                  className="title"
+                  style={{
+                    color: '#00ff00',
+                    fontSize: '3rem',
+                    marginBottom: '1rem',
+                    textShadow: '0 0 20px rgba(0, 255, 0, 0.5)',
+                  }}
+                >
+                  CORRECT!
+                </h1>
+                <div
+                  style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 'bold',
+                    color: '#00ff00',
+                    marginBottom: '1rem',
+                    textShadow: '0 0 15px rgba(0, 255, 0, 0.4)',
+                  }}
+                >
+                  +{roundPoints} Points
+                </div>
+                <p className="subtitle" style={{ fontSize: '1.2rem', color: '#aaa' }}>
+                  Total Score: <strong style={{ color: '#00aaff' }}>{currentScore}</strong>
+                </p>
+              </>
+            ) : (
+              <>
+                <h1
+                  className="title"
+                  style={{
+                    color: '#ff4444',
+                    fontSize: '3rem',
+                    marginBottom: '1rem',
+                    textShadow: '0 0 20px rgba(255, 68, 68, 0.5)',
+                  }}
+                >
+                  WRONG!
+                </h1>
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    color: '#ff4444',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  0 Points
+                </div>
+                {correctAnswerText && (
+                  <div
+                    style={{
+                      backgroundColor: '#2a2a2a',
+                      padding: '1.5rem',
+                      borderRadius: '8px',
+                      marginBottom: '1.5rem',
+                      borderLeft: '4px solid #00aaff',
+                    }}
+                  >
+                    <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '0.5rem' }}>
+                      The correct answer was:
+                    </p>
+                    <p style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 'bold' }}>
+                      {correctAnswerText}
+                    </p>
+                  </div>
+                )}
+                <p className="subtitle" style={{ fontSize: '1.2rem', color: '#aaa' }}>
+                  Total Score: <strong style={{ color: '#00aaff' }}>{currentScore}</strong>
+                </p>
+              </>
             )}
-            <p className="subtitle" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>
-              Current Score: <strong>{currentScore}</strong>
-            </p>
           </>
         )}
 
