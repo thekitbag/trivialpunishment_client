@@ -4,10 +4,10 @@
 **Trivial Punishment** is a local multiplayer, mobile-first web game inspired by "Jackbox" style party games.
 - **Concept:** A Host (TV/Laptop) runs the game, and Players (Phones) join via a 4-letter room code to answer questions.
 - **Theme:** "Questionable Puns" / Seasonal.
-- **Stack:** React (Vite), Socket.io-client, React Router.
+- **Stack:** React 19 (Vite), Socket.io-client, React Router, qrcode.react.
 
 ## Architecture
-- **Frontend Only:** This repository contains the Client code (root directory).
+- **Frontend Only:** This repository contains the Client code in the root directory (files were moved from `client/` subdirectory to root for simplified deployment).
 - **Communication:** Communicates with the backend server via Socket.io (default port 3001) for real-time game state and HTTP (`/api`) for authentication.
 - **State Management:**
   - `SocketContext.jsx`: Global singleton socket instance. Includes auth token in socket connection handshake.
@@ -108,7 +108,12 @@
 - **Environment:**
   - `VITE_SOCKET_URL` controls the backend socket target (defaults to `window.location.origin` if unset).
   - `VITE_API_URL` controls the backend API target for HTTP requests (defaults to `window.location.origin` if unset).
-- **Styling:** Standard CSS in `App.css`. Uses viewport units and clamp() for responsive sizing.
+  - **Development Proxy:** `vite.config.js` includes proxy configuration for `/api` and `/socket.io` endpoints, targeting `http://localhost:3001` by default during development.
+- **Styling:**
+  - Global styles in `src/App.css` and `src/index.css`
+  - Uses viewport units and clamp() for responsive sizing
+  - CSS variables for theming
+  - Grid/Flexbox for layouts
 - **Debugging:** Uncomment `statusRow` elements in views for connection/route debugging.
 
 ## Current Status
