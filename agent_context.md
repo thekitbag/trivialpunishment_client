@@ -1,7 +1,7 @@
 # Agent Context: Trivial Punishment Client
 
 ## Project Overview
-**Trivial Punishment** is a local multiplayer, mobile-first web game inspired by "Jackbox" style party games.
+**Trivial Punishment** is a local multiplayer, mobile-first web game.
 - **Concept:** A Host (TV/Laptop) runs the game, and Players (Phones) join via a 4-letter room code to answer questions.
 - **Theme:** "Questionable Puns" / Seasonal.
 - **Stack:** React 19 (Vite), Socket.io-client, React Router, qrcode.react.

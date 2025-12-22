@@ -1,6 +1,6 @@
 # Trivial Punishment Client
 
-The frontend for **Trivial Punishment**, a local multiplayer party game inspired by "Jackbox" games. Built with React, Vite, and Socket.io.
+The frontend for **Trivial Punishment**, a local multiplayer party game. Built with React, Vite, and Socket.io.
 
 ## Overview
 
