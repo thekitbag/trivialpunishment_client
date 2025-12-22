@@ -104,7 +104,10 @@ export default function Leaderboard() {
           <button
             className="button"
             style={{ marginTop: '2rem' }}
-            onClick={() => navigate('/')}
+            onClick={() => {
+              sessionStorage.removeItem('current_game_code')
+              navigate('/')
+            }}
           >
             Back to Home
           </button>

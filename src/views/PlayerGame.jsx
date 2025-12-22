@@ -15,8 +15,10 @@ export default function PlayerGame() {
 
   const [state, setState] = useState('waiting')
   const [questionText, setQuestionText] = useState('')
+  const [questionType, setQuestionType] = useState('multiple_choice')
   const [options, setOptions] = useState([])
   const [selectedAnswer, setSelectedAnswer] = useState(null)
+  const [textAnswer, setTextAnswer] = useState('')
   const [wasCorrect, setWasCorrect] = useState(null)
   const [currentScore, setCurrentScore] = useState(0)
   const [roundPoints, setRoundPoints] = useState(0)
@@ -51,8 +53,10 @@ export default function PlayerGame() {
     function onQuestionStart(payload) {
       console.log('[PlayerGame] Question started:', payload)
       setQuestionText(payload.text || '')
+      setQuestionType(payload.type || 'multiple_choice')
       setOptions(payload.options || [])
       setSelectedAnswer(null)
+      setTextAnswer('')
       setWasCorrect(null)
       setRoundPoints(0)
       setCorrectAnswerText('')
@@ -64,26 +68,33 @@ export default function PlayerGame() {
 
     function onRoundReveal(payload) {
       console.log('[PlayerGame] Round reveal:', payload)
-      if (selectedAnswer !== null) {
-        setWasCorrect(selectedAnswer === payload.correctIndex)
-      }
 
+      let myPoints = 0
       if (payload.scores) {
         const myScoreObj = payload.scores.find(p => p.username === user?.username)
         if (myScoreObj) {
           setCurrentScore(myScoreObj.score)
           // Extract points earned this round from the top-level pointsEarned map
           if (payload.pointsEarned && myScoreObj.id) {
-             setRoundPoints(payload.pointsEarned[myScoreObj.id] || 0)
-          } else {
-             setRoundPoints(0)
+             myPoints = payload.pointsEarned[myScoreObj.id] || 0
           }
+          setRoundPoints(myPoints)
         }
       }
 
-      // Store the correct answer text
+      // Determine if answer was correct
+      if (questionType === 'free_text') {
+        // For text questions, if we got points, we were correct
+        setWasCorrect(myPoints > 0)
+      } else if (selectedAnswer !== null) {
+        setWasCorrect(selectedAnswer === payload.correctIndex)
+      }
+
+      // Store the correct answer text/display
       if (payload.correctAnswerText) {
         setCorrectAnswerText(payload.correctAnswerText)
+      } else if (payload.correctAnswerDisplay) {
+        setCorrectAnswerText(payload.correctAnswerDisplay)
       }
 
       setState('result')
@@ -92,6 +103,7 @@ export default function PlayerGame() {
     function onRoundStart() {
       setState('waiting')
       setSelectedAnswer(null)
+      setTextAnswer('')
       setWasCorrect(null)
       setRoundPoints(0)
       setCorrectAnswerText('')
@@ -124,6 +136,7 @@ export default function PlayerGame() {
 
     function onGameOver(payload) {
       console.log('[PlayerGame] Game over:', payload)
+      sessionStorage.removeItem('current_game_code')
       navigate('/leaderboard', { state: { finalScores: payload.scores } })
     }
 
@@ -171,6 +184,16 @@ export default function PlayerGame() {
     setState('answered')
     console.log('[PlayerGame] Submitting answer:', { answerIndex: index, gameCode })
     socket.emit('submit_answer', { answerIndex: index, gameCode })
+  }
+
+  function handleTextSubmit(event) {
+    event.preventDefault()
+    const answer = textAnswer.trim()
+    if (!answer || state !== 'question') return
+
+    setState('answered')
+    console.log('[PlayerGame] Submitting text answer:', { answer, gameCode })
+    socket.emit('submit_answer', { answer, gameCode })
   }
 
   function handleTopicSubmit(event) {
@@ -266,32 +289,58 @@ export default function PlayerGame() {
                 {questionText}
               </h2>
             )}
-            <h3 className="subtitle" style={{ fontSize: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-              Select your answer
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-              {options.map((option, index) => (
-                <button
-                  key={index}
-                  className="button"
-                  onClick={() => handleAnswerClick(index)}
-                  style={{
-                    padding: '1.5rem',
-                    fontSize: '1.2rem',
-                    minHeight: '80px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                  }}
-                >
-                  <strong style={{ marginRight: '1rem', fontSize: '1.5rem' }}>
-                    {String.fromCharCode(65 + index)}
-                  </strong>
-                  <span>{option}</span>
-                </button>
-              ))}
-            </div>
+
+            {questionType === 'free_text' ? (
+              <>
+                <h3 className="subtitle" style={{ fontSize: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                  Type your answer
+                </h3>
+                <form onSubmit={handleTextSubmit}>
+                  <input
+                    className="input"
+                    type="text"
+                    value={textAnswer}
+                    onChange={(e) => setTextAnswer(e.target.value)}
+                    placeholder="Enter your answer..."
+                    autoFocus
+                    maxLength={100}
+                    style={{ marginBottom: '1rem' }}
+                  />
+                  <button className="button" type="submit" disabled={!textAnswer.trim()}>
+                    Submit Answer
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <h3 className="subtitle" style={{ fontSize: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                  Select your answer
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                  {options.map((option, index) => (
+                    <button
+                      key={index}
+                      className="button"
+                      onClick={() => handleAnswerClick(index)}
+                      style={{
+                        padding: '1.5rem',
+                        fontSize: '1.2rem',
+                        minHeight: '80px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <strong style={{ marginRight: '1rem', fontSize: '1.5rem' }}>
+                        {String.fromCharCode(65 + index)}
+                      </strong>
+                      <span>{option}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -309,7 +358,11 @@ export default function PlayerGame() {
                   fontSize: '1.5rem',
                 }}
               >
-                Your answer: <strong>{String.fromCharCode(65 + selectedAnswer)}</strong>
+                Your answer: <strong>
+                  {questionType === 'free_text'
+                    ? textAnswer
+                    : String.fromCharCode(65 + selectedAnswer)}
+                </strong>
               </div>
             </div>
           </>
