@@ -16,9 +16,11 @@
 ## Component Structure
 ### Host Views
 - **`HostLobby.jsx`**: Pre-game lobby where host creates and configures the game
-  - Game creation with configuration (players, rounds, questions)
+  - Game creation with configuration (players, rounds, questions, difficulty)
+  - Difficulty selector with options: Easy, Medium, Hard, Mixed (default)
   - Displays join code and QR code for players to scan
   - Shows player list as they join
+  - Displays selected configuration including difficulty level
   - Requires authentication
   - Auto-starts game when all players have joined
 
@@ -53,7 +55,7 @@
   - Question display with answer selection
   - Topic selection when player is the picker
   - Score display
-  - Feedback after answering
+  - Detailed feedback: Points earned (green) or Correct Answer (red)
 
 ### Shared Components
 - **`LandingPage.jsx`**: Home screen with Host/Join options and Login/Signup
@@ -62,7 +64,8 @@
 
 ## Key Features Implemented
 1.  **Host/Player Separation:** Different routes (`/host` vs `/join` vs `/`) for different roles.
-2.  **Game Creation:** Host can configure settings (Players, Rounds, Questions) and create a room.
+2.  **Game Creation:** Host can configure settings (Players, Rounds, Questions, Difficulty) and create a room.
+    - **Difficulty Selection:** Choose from Easy, Medium, Hard, or Mixed difficulty levels
 3.  **Resilience:**
     - **Host Reconnect:** If the Host refreshes, they can resume their session (via `sessionStorage`).
     - **Player Rejoin:** If a Player refreshes, they auto-rejoin the lobby.

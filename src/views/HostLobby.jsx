@@ -40,6 +40,7 @@ export default function HostLobby() {
   const [targetPlayerCount, setTargetPlayerCount] = useState(2)
   const [roundsPerPlayer, setRoundsPerPlayer] = useState(1)
   const [questionsPerRound, setQuestionsPerRound] = useState(3)
+  const [difficulty, setDifficulty] = useState('Mixed')
   const [isConfigured, setIsConfigured] = useState(false)
   
   const [joinUrl, setJoinUrl] = useState(window.location.origin)
@@ -174,6 +175,7 @@ export default function HostLobby() {
       maxPlayers,
       roundsPerPlayer: rounds,
       questionsPerRound: questions,
+      difficulty,
     })
   }
 
@@ -245,6 +247,19 @@ export default function HostLobby() {
                 onChange={(e) => setQuestionsPerRound(e.target.value)}
               />
             </label>
+            <label className="configRow">
+              <span className="configLabel">Question Difficulty</span>
+              <select
+                className="input"
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+              >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+                <option value="Mixed">Mixed</option>
+              </select>
+            </label>
           </div>
 
           <button className="button" type="button" onClick={onCreateGame} disabled={creatingGame || !connected}>
@@ -308,7 +323,7 @@ export default function HostLobby() {
         </div>
 
         <p className="subtitle">
-          {targetPlayerCount} Players • {roundsPerPlayer} Rounds each • {questionsPerRound} Questions
+          {targetPlayerCount} Players • {roundsPerPlayer} Rounds each • {questionsPerRound} Questions • {difficulty} Difficulty
         </p>
         <p className="subtitle">
           Players Joined: {names.length} / {targetPlayerCount}
