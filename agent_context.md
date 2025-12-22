@@ -28,8 +28,9 @@
   - **Full-screen display** - Uses entire viewport (100vh/100vw)
   - **Toggles between two exclusive views:**
     - **Question View**: Shows during `question` phase
+      - Displays "Punny Title" for the round (e.g., "Going Bananas")
       - Large question text (up to 64px)
-      - Answer options with letter badges (A, B, C, D)
+      - Supports Multiple Choice (A/B/C/D grid) and Free Text (placeholder display)
       - Countdown timer
       - Topic badge at top
       - Players answered counter
@@ -52,7 +53,7 @@
   - Requires authentication
 
 - **`PlayerGame.jsx`**: Player's personal game interface (mobile-optimized)
-  - Question display with answer selection
+  - Question display with answer selection (or text input for Free Text questions)
   - Topic selection when player is the picker
   - Score display
   - Detailed feedback: Points earned (green) or Correct Answer (red)
